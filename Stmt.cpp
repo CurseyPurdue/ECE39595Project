@@ -2,28 +2,36 @@
 using namespace std;
 
 class Stmt {
-    public:        
+    public: 
+        std::string op;
         int opcode;
+        int addr;
         std::string str_token;
+        
 };
 
-class Var_Stmt : public Stmt {
+class VarStmt : public Stmt {
     public:
         std::string var_token;
 };
 
-class Var_Len_Stmt : public Var_Stmt {
+class VarLengthStmt : public VarStmt {
     public:
         int length;
 };
 
-class Label_Stmt : public Stmt {
+class LabelStmt : public Stmt {
     public:
         std::string label_token;
 
 };
 
-class Int_Stmt : public Stmt {
+class IntStmt : public Stmt {
     public:
         int int_token;
+};
+
+class StrStmt : public Stmt {
+    public:
+        std::string str_token;
 };
