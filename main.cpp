@@ -2,7 +2,6 @@
 #include <fstream>
 #include <regex>
 #include "Stmt.h"
-//#include "StartStmt.h"
 using namespace std;
 int end_stmt = 0;
 const std::vector<std::string> stmtOps = {"start",
@@ -39,10 +38,6 @@ const std::vector<std::string> labelStmtOps{"label",
 const std::vector<std::string> intStmtOps{"pushi"};
 const std::vector<std::string> strStmtOps{"prints"};
 
-
-
-int getNumLines(std::string fn);
-
 Stmt* checkStatement(std::string statementStr){
     //get statement
     
@@ -66,17 +61,41 @@ Stmt* checkStatement(std::string statementStr){
         if(op == "start"){
             return new StartObj("start");
         }
-        else if(op == "exit"){
-            return new ExitObj("exit");
-        }
         else if(op == "end"){
             end_stmt += 1;
             return new EndObj("end");
             //cout << "Need end type?" << endl;
             //return new StartObj("end (shouldn't be here)");
         }
+        else if(op == "exit"){
+            return new ExitObj("exit");
+        }
+        else if(op == "return"){
+
+        }
+        else if(op == "pop"){
+            return new PopObj("pop");
+        }
+        else if(op == "dup"){
+            return new DupObj("dup");
+        }
+        else if(op == "swap"){
+            return new SwapObj("swap");
+        }
+        else if(op == "add"){
+            return new AddObj("add");
+        }
+        else if(op == "negate"){
+            return new NegateObj("negate");
+        }
+        else if(op == "mul"){
+            return new MulObj("mul");
+        }
+        else if(op == "div"){
+            return new DivObj("div");
+        }
         else if(op == "printtos"){
-            
+            return new PrintTOSObj("printtos");
         }
     }
     
@@ -130,8 +149,6 @@ Stmt* checkStatement(std::string statementStr){
     return nullptr;
 }
 
-
-
 int getNumLines(std::string fn){
     fstream f;
     std::string line;
@@ -146,9 +163,9 @@ int getNumLines(std::string fn){
     return numLines;
 }
 
-StartObj test(){
-    return StartObj("test2");
-}
+//instruction buffer, symbol table, and string buffer declaration
+vector<Stmt*> instructionBuffer;
+vector<std::string> stringBuffer;
 
 int main(int argc, char **argv) {
     string fn = argv[1];
@@ -158,13 +175,6 @@ int main(int argc, char **argv) {
     f.open(fn);
 
     if(f.is_open()){
-        //get number of lines in file
-        //int numLines = getNumLines(fn);
-
-        //std::cout << numLines << std::endl;
-        //create instruction buffer of size numLines
-        //Stmt instructionBuffer[numLines]; //ptr[0] = new Stmt("start") ptr[0] -> returnString
-        vector<Stmt*> instructionBuffer;
         int instructionBufferCount = 0;
 
         while(getline(f, line)){

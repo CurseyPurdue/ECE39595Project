@@ -49,15 +49,63 @@ class StartObj : public Stmt{
 
 };
 
+class EndObj : public Stmt{
+    public:
+        EndObj(std::string _op) : Stmt(_op) {opcode = 666;};
+        std::string serialize();
+};
+
 class ExitObj : public Stmt{
     public:
         ExitObj(std::string _op) : Stmt(_op) {opcode = OP_EXIT_PROGRAM;};
         std::string serialize();
 };
 
-class EndObj : public Stmt{
+class PopObj : public Stmt{
     public:
-        EndObj(std::string _op) : Stmt(_op) {opcode = 666;};
+        PopObj(std::string _op) : Stmt(_op) {opcode = OP_POP;};
+        std::string serialize();
+};
+
+class DupObj : public Stmt{
+    public:
+        DupObj(std::string _op) : Stmt(_op) {opcode = OP_DUP;};
+        std::string serialize();
+};
+
+class SwapObj : public Stmt{
+    public:
+        SwapObj(std::string _op) : Stmt(_op) {opcode = OP_SWAP;};
+        std::string serialize();
+};
+
+class AddObj : public Stmt{
+    public:
+        AddObj(std::string _op) : Stmt(_op) {opcode = OP_ADD;};
+        std::string serialize();
+};
+
+class NegateObj : public Stmt{
+    public:
+        NegateObj(std::string _op) : Stmt(_op) {opcode = OP_NEGATE;};
+        std::string serialize();
+};
+
+class MulObj : public Stmt{
+    public:
+        MulObj(std::string _op) : Stmt(_op) {opcode = OP_MUL;};
+        std::string serialize();
+};
+
+class DivObj : public Stmt{
+    public:
+        DivObj(std::string _op) : Stmt(_op) {opcode = OP_DIV;};
+        std::string serialize();
+};
+
+class PrintTOSObj : public Stmt{
+    public:
+        PrintTOSObj(std::string _op) : Stmt(_op) {opcode = OP_PRINTTOS;};
         std::string serialize();
 };
 
