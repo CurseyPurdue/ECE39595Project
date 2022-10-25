@@ -60,5 +60,12 @@ class EndObj : public Stmt{
         EndObj(std::string _op) : Stmt(_op) {opcode = 666;};
         std::string serialize();
 };
+
+class PushIObj: public Stmt{
+    public:
+        int arg;
+        PushIObj(std::string _op, int _arg) : Stmt(_op) {opcode = OP_PUSHI; arg = _arg;};
+        std::string serialize();
+};
 #endif /* STMT_H_ */
 

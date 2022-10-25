@@ -61,36 +61,73 @@ Stmt* checkStatement(std::string statementStr){
         //return error
     }
 
-    //if (std::find(std::begin(stmtOps), std::end(stmtOps), op) != std::end(stmtOps)){
+    if (std::find(std::begin(stmtOps), std::end(stmtOps), op) != std::end(stmtOps)){
         //regex to check if okay
+        if(op == "start"){
+            return new StartObj("start");
+        }
+        else if(op == "exit"){
+            return new ExitObj("exit");
+        }
+        else if(op == "end"){
+            end_stmt += 1;
+            return new EndObj("end");
+            //cout << "Need end type?" << endl;
+            //return new StartObj("end (shouldn't be here)");
+        }
+        else if(op == "printtos"){
+            
+        }
+    }
     
-    //std::cout << op << std::endl;
-
-
-
-    if(op == "start"){
-        return new StartObj("start");
+    else if (std::find(std::begin(varStmtOps), std::end(varStmtOps), op) != std::end(varStmtOps)){
+    
     }
-    else if(op == "exit"){
-        return new ExitObj("exit");
+    else if (std::find(std::begin(varLenStmtOps), std::end(varLenStmtOps), op) != std::end(varLenStmtOps)){
+    
     }
-    else if(op == "end"){
-        end_stmt += 1;
-        return new EndObj("END");
-        //cout << "Need end type?" << endl;
-        //return new StartObj("end (shouldn't be here)");
+    else if (std::find(std::begin(labelStmtOps), std::end(labelStmtOps), op) != std::end(labelStmtOps)){
+    
     }
+    else if (std::find(std::begin(intStmtOps), std::end(intStmtOps), op) != std::end(intStmtOps)){
+        //regex to catch int and check
+        //std::string pushi = op;
+        //regex intStmtRegex("(?<=op\\s)[0-9]{0,16}");
+        regex intStmtRegex("(\\w+)\\s+([0-9])");
+        smatch intStmtMatch;
+        int arg = 666;
 
-    //}
+        if(regex_search(statementStr, intStmtMatch, intStmtRegex)){
+            //cout << "Whole match : " << match.str(0) << endl;
+            //std::cout << intStmtMatch.str(1) << std::endl;
+            //std::cout << std::stoi(intStmtMatch.str(2)) << std::endl;
+
+            //op = intStmtMatch.str(1);
+            arg = std::stoi(intStmtMatch.str(2));
+        }
+        else{
+            //no match!
+            std::cout << "intStmtRegex doesn't match" << std::endl;
+            //exit (EXIT_FAILURE);
+            //return error
+        }
+
+        if(op == "pushi"){
+            return new PushIObj("pushi", arg);
+        }
+    }
+    else if (std::find(std::begin(strStmtOps), std::end(strStmtOps), op) != std::end(strStmtOps)){
+
+    }
     else{
+        //operation not found! failure
         cout << "Op doesn't match anywhere" << endl;
 
-        //exit (EXIT_FAILURE);
     }
     
     //return new StartObj("fail");
 
-    //return nullptr;
+    return nullptr;
 }
 
 
@@ -146,10 +183,8 @@ int main(int argc, char **argv) {
         outputFile.open("output0.txt", fstream::out);
         
         for(auto & element : instructionBuffer) {
-            outputFile << element->serialize() << std::endl;
-            if((element -> serialize() == "exit") && (end_stmt == 1)){
-                outputFile << "end";
-            }
+            //cout << element->serialize() << endl;
+            outputFile << element->serialize() << endl;
             //outputFile << "Hello\n";
             //std::cout << element->serialize() << std::endl;
         }

@@ -14,3 +14,7 @@ std::string ExitObj::serialize(){
 std::string EndObj::serialize(){
     return "End";
 }
+
+std::string PushIObj::serialize(){
+    return "PushI  (" + to_string(arg) + ")";
+}
