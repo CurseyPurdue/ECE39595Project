@@ -2,9 +2,9 @@
 #include <fstream>
 #include <regex>
 #include "Stmt.h"
-#include "StartStmt.h"
+//#include "StartStmt.h"
 using namespace std;
-
+int end_stmt = 0;
 const std::vector<std::string> stmtOps = {"start",
                                 "end",
                                 "exit",
@@ -75,8 +75,10 @@ Stmt* checkStatement(std::string statementStr){
         return new ExitObj("exit");
     }
     else if(op == "end"){
-        cout << "Need end type?" << endl;
-        return new StartObj("end (shouldn't be here)");
+        end_stmt += 1;
+        return new EndObj("END");
+        //cout << "Need end type?" << endl;
+        //return new StartObj("end (shouldn't be here)");
     }
 
     //}
@@ -131,18 +133,30 @@ int main(int argc, char **argv) {
         while(getline(f, line)){
             //add all parsed instructions to pre-instruction list first, checking input, etc
             Stmt* currentStatement = checkStatement(line);
+            if((currentStatement->serialize() == "End") && (end_stmt == 1)){
+                break;
+            }
             instructionBuffer.push_back(currentStatement);
             //instructionBufferCount += 1;
             //std::cout << currentStatement->returnString() << std::endl;
         }
         
+        //write to file
+        fstream outputFile;
+        outputFile.open("output0.txt", fstream::out);
+        
         for(auto & element : instructionBuffer) {
-            std::cout << element->serialize() << std::endl;
+            outputFile << element->serialize() << std::endl;
+            if((element -> serialize() == "exit") && (end_stmt == 1)){
+                outputFile << "end";
+            }
+            //outputFile << "Hello\n";
+            //std::cout << element->serialize() << std::endl;
         }
         //std::cout << instructionBuffer[0]->returnString() << std::endl;
 
 
-        std::cout << "end" << std::endl;
+        //std::cout << "end" << std::endl;
 
         
         //for each item in pre instruction list

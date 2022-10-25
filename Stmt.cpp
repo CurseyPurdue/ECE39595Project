@@ -10,3 +10,7 @@ std::string StartObj::serialize(){
 std::string ExitObj::serialize(){
     return "Exit";
 }
+
+std::string EndObj::serialize(){
+    return "End";
+}

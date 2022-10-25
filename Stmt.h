@@ -55,6 +55,10 @@ class ExitObj : public Stmt{
         std::string serialize();
 };
 
-
+class EndObj : public Stmt{
+    public:
+        EndObj(std::string _op) : Stmt(_op) {opcode = 666;};
+        std::string serialize();
+};
 #endif /* STMT_H_ */
 
