@@ -51,13 +51,19 @@ class StartObj : public Stmt{
 
 class EndObj : public Stmt{
     public:
-        EndObj(std::string _op) : Stmt(_op) {opcode = 666;};
+        EndObj(std::string _op) : Stmt(_op) {opcode = -1;};
         std::string serialize();
 };
 
 class ExitObj : public Stmt{
     public:
         ExitObj(std::string _op) : Stmt(_op) {opcode = OP_EXIT_PROGRAM;};
+        std::string serialize();
+};
+
+class ReturnObj : public Stmt{
+    public:
+        ReturnObj(std::string _op) : Stmt(_op) {opcode = OP_RETURN;};
         std::string serialize();
 };
 
@@ -116,7 +122,23 @@ class PrintTOSObj : public Stmt{
 //labelStmtOps
 class LabelObj : public Stmt{
     public:
-        LabelObj(std::string _op) : Stmt(_op) {opcode = 666;};
+        LabelObj(std::string _op) : Stmt(_op) {opcode = -1;};
+        std::string serialize();
+};
+
+class GoSubObj : public Stmt{
+    public:
+        std::string label;
+        int location;
+        GoSubObj(std::string _op, std::string _label) : Stmt(_op) {opcode = OP_GOSUB; label = _label; location = -1;};
+        std::string serialize();
+};
+
+class GoSubLabelObj : public Stmt{
+    public:
+        std::string label;
+        int size;
+        GoSubLabelObj(std::string _op, std::string _label) : Stmt(_op) {opcode = OP_ENTER_SUBROUTINE; label = _label; size = -1;};
         std::string serialize();
 };
 
@@ -143,6 +165,7 @@ class JumpNZeroObj : public Stmt{
         JumpNZeroObj(std::string _op, std::string _label) : Stmt(_op) {opcode = OP_JUMPNZERO; label = _label; location = -1;};
         std::string serialize();
 };
+
 
 //intStmtOps
 class PushIObj: public Stmt{

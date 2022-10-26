@@ -15,6 +15,10 @@ std::string ExitObj::serialize(){
     return "Exit";
 }
 
+std::string ReturnObj::serialize(){
+    return "Return";
+}
+
 std::string PopObj::serialize(){
     return "Pop";
 }
@@ -57,6 +61,14 @@ std::string PrintTOSObj::serialize(){
 //labelStmtOps
 std::string LabelObj::serialize(){
     return "";
+}
+
+std::string GoSubObj::serialize(){
+    return "GoSub " + label + "(" + to_string(location) + ")";
+}
+
+std::string GoSubLabelObj::serialize(){
+    return "GoSubLabel " + label;
 }
 
 std::string JumpObj::serialize(){

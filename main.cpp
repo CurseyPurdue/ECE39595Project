@@ -47,7 +47,7 @@ vector<Stmt*> instructionBuffer;
 vector<std::string> stringBuffer;
 
 vector<map<std::string, TwoTuple*>> symbolTable;
-int instructionBufferReturnIndex = 0;
+int instBufferReturnIndex = 0;
 
 Stmt* checkStatement(std::string statementStr){
     //get statement
@@ -84,7 +84,6 @@ Stmt* checkStatement(std::string statementStr){
             vector<Stmt*>::iterator it; 
             for(it = instructionBuffer.begin(); it != instructionBuffer.end(); it++){
                 Stmt* currentObj = *it;
-                std::cout << currentObj->op << std::endl;
 
                 if(currentObj->op == "jump"){
                     JumpObj* currentJumpObj = static_cast<JumpObj*>(currentObj);
@@ -92,8 +91,6 @@ Stmt* checkStatement(std::string statementStr){
                     if(currentJumpObj->location == -1){ //if value not assigned
                         TwoTuple* vals = symbolTable.back()[currentJumpObj->label];
                         currentJumpObj->location = vals->location;
-                        std::cout << currentJumpObj->location << std::endl;
-
                     }
                 }
                 else if(currentObj->op == "jumpzero"){
@@ -102,8 +99,6 @@ Stmt* checkStatement(std::string statementStr){
                     if(currentJumpObj->location == -1){ //if value not assigned
                         TwoTuple* vals = symbolTable.back()[currentJumpObj->label];
                         currentJumpObj->location = vals->location;
-                        std::cout << currentJumpObj->location << std::endl;
-
                     }
                 }
                 else if(currentObj->op == "jumpnzero"){
@@ -112,8 +107,14 @@ Stmt* checkStatement(std::string statementStr){
                     if(currentJumpObj->location == -1){ //if value not assigned
                         TwoTuple* vals = symbolTable.back()[currentJumpObj->label];
                         currentJumpObj->location = vals->location;
-                        std::cout << currentJumpObj->location << std::endl;
-
+                    }
+                }
+                else if(currentObj->op == "gosub"){
+                    GoSubObj* currentGoSubObj = static_cast<GoSubObj*>(currentObj);
+                
+                    if(currentGoSubObj->location == -1){ //if value not assigned
+                        TwoTuple* vals = symbolTable.back()[currentGoSubObj->label];
+                        currentGoSubObj->location = vals->location;
                     }
                 }
 
@@ -126,20 +127,63 @@ Stmt* checkStatement(std::string statementStr){
             //return new StartObj("end (shouldn't be here)");
         }
         else if(op == "exit"){
-            //go back through symbol table
-        
-            //assign all the values and stuff
 
             ExitObj* object = new ExitObj("exit");
             instructionBuffer.push_back(object);
             return object;
         }
         else if(op == "return"){
-            
-            //when you hit a return, 
+            //push return onto instruction buffer
+            ReturnObj* object = new ReturnObj("return");
+            instructionBuffer.push_back(object);
 
-            //then pop back symbol table             
+            //when you hit a return, loop from 
+            int count = instBufferReturnIndex;
+            vector<Stmt*>::iterator it; 
+            for(it = instructionBuffer.begin() + instBufferReturnIndex; it != instructionBuffer.end(); it++){
+                Stmt* currentObj = *it;
+                std::cout << count << std::endl;
+                count += 1;
 
+                if(currentObj->op == "jump"){
+                    JumpObj* currentJumpObj = static_cast<JumpObj*>(currentObj);
+                
+                    if(currentJumpObj->location == -1){ //if value not assigned
+                        TwoTuple* vals = symbolTable.back()[currentJumpObj->label];
+                        currentJumpObj->location = vals->location;
+                    }
+                }
+                else if(currentObj->op == "jumpzero"){
+                    JumpZeroObj* currentJumpObj = static_cast<JumpZeroObj*>(currentObj);
+                
+                    if(currentJumpObj->location == -1){ //if value not assigned
+                        TwoTuple* vals = symbolTable.back()[currentJumpObj->label];
+                        currentJumpObj->location = vals->location;
+                    }
+                }
+                else if(currentObj->op == "jumpnzero"){
+                    JumpNZeroObj* currentJumpObj = static_cast<JumpNZeroObj*>(currentObj);
+                
+                    if(currentJumpObj->location == -1){ //if value not assigned
+                        TwoTuple* vals = symbolTable.back()[currentJumpObj->label];
+                        currentJumpObj->location = vals->location;
+                    }
+                }
+                
+
+                /*else if(currentObj->op == "gosub"){
+                    GoSubObj* currentGoSubObj = static_cast<GoSubObj*>(currentObj);
+                
+                    if(currentGoSubObj->location == -1){ //if value not assigned
+                        TwoTuple* vals = symbolTable.back()[currentGoSubObj->label];
+                        currentGoSubObj->location = vals->location;
+                    }
+                }*/
+            }
+            instBufferReturnIndex = 0; //set instBufferReturnIndex = 0;
+            symbolTable.pop_back(); //then pop off symbol table  
+
+            return object;
         }
         else if(op == "pop"){
             PopObj* object = new PopObj("pop");
@@ -231,6 +275,34 @@ Stmt* checkStatement(std::string statementStr){
         else if(op == "jumpnzero"){
             JumpNZeroObj* object = new JumpNZeroObj("jumpnzero", label);
             instructionBuffer.push_back(object);
+            return object;
+        }
+        else if(op == "gosub"){
+            GoSubObj* object = new GoSubObj("gosub", label);
+            instructionBuffer.push_back(object);
+            return object;
+        }
+        else if(op == "gosublabel"){
+            //GoSubLabelObj* object = new GoSubLabelObj("gosublabel", label);
+            //instructionBuffer.push_back(object);
+            //set instruction buffer return index (for looking through returns)
+            instBufferReturnIndex = instructionBuffer.size();
+
+            //add a symbol in the top level symbol table
+            TwoTuple* data = new TwoTuple(instructionBuffer.size(), 0);
+            std::pair<std::string, TwoTuple*> pair;
+            
+            GoSubLabelObj* object = new GoSubLabelObj("gosublabel", label);
+            instructionBuffer.push_back(object);
+            //add to symbol table
+            pair.first = label;
+            pair.second = data;
+            symbolTable.back().insert(pair);
+
+            //create subroutine symbol table
+            std::map<std::string, TwoTuple*> subroutine;
+            symbolTable.push_back(subroutine);
+
             return object;
         }
     }
@@ -357,11 +429,3 @@ int main(int argc, char **argv) {
     else cout << "Error opening input file";
     return 0;
 }
-
-/*first test case
-
-start
-exit
-end
-
-*/
