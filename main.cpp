@@ -1,9 +1,13 @@
 #include <iostream>
 #include <fstream>
 #include <regex>
+#include <map>
 #include "Stmt.h"
+#include "TwoTuple.h"
 using namespace std;
+
 int end_stmt = 0;
+
 const std::vector<std::string> stmtOps = {"start",
                                 "end",
                                 "exit",
@@ -166,6 +170,7 @@ int getNumLines(std::string fn){
 //instruction buffer, symbol table, and string buffer declaration
 vector<Stmt*> instructionBuffer;
 vector<std::string> stringBuffer;
+//vector<std::map<std::string, TwoTuple*>> symbolTable;
 
 int main(int argc, char **argv) {
     string fn = argv[1];
