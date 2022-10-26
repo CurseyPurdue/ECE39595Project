@@ -43,7 +43,7 @@ class Stmt {
 //stmtOps
 class StartObj : public Stmt{
     public:
-        int numVars = 0; //num variables (for start)
+        int numVars = -1; //num variables (for start)
         StartObj(std::string _op) : Stmt(_op) {opcode = OP_START_PROGRAM;};
         std::string serialize();
 
@@ -116,6 +116,38 @@ class PrintTOSObj : public Stmt{
 };
 
 //varStmtOps
+class DeclScalObj : public Stmt{
+    public:
+        DeclScalObj(std::string _op) : Stmt(_op) {opcode = -1;};
+        std::string serialize();
+};
+
+class PopScalObj: public Stmt{
+    public:
+        int location = -1; //num variables (for start)
+        std::string var;
+        PopScalObj(std::string _op, std::string _var) : Stmt(_op) {opcode = OP_POPSCALAR; var = _var; location = -1;};
+        std::string serialize();
+
+};
+
+class PushScalObj: public Stmt{
+    public:
+        int location = -1; //num variables (for start)
+        std::string var;
+        PushScalObj(std::string _op, std::string _var) : Stmt(_op) {opcode = OP_PUSHSCALAR; var = _var; location = -1;};
+        std::string serialize();
+
+};
+
+class PushArrObj: public Stmt{
+    public:
+        int location = -1; //num variables (for start)
+        std::string var;
+        PushArrObj(std::string _op, std::string _var) : Stmt(_op) {opcode = OP_PUSHARRAY; var = _var; location = -1;};
+        std::string serialize();
+
+};
 
 //varLenStmtOps
 

@@ -7,7 +7,7 @@
 using namespace std;
 
 int end_stmt = 0;
-
+//int pop_var = -1;
 const std::vector<std::string> stmtOps = {"start",
                                 "end",
                                 "exit",
@@ -48,6 +48,8 @@ vector<std::string> stringBuffer;
 
 vector<map<std::string, TwoTuple*>> symbolTable;
 int instBufferReturnIndex = 0;
+int globalVarCount = 0;
+int varCount = 0;
 
 Stmt* checkStatement(std::string statementStr){
     //get statement
@@ -72,7 +74,7 @@ Stmt* checkStatement(std::string statementStr){
             //add top level symbol table
             std::map<std::string, TwoTuple*> base;
             symbolTable.push_back(base);
-            //symbolTable.back()
+
             StartObj* object = new StartObj("start");
             instructionBuffer.push_back(object);
             return object;
@@ -85,6 +87,13 @@ Stmt* checkStatement(std::string statementStr){
             for(it = instructionBuffer.begin(); it != instructionBuffer.end(); it++){
                 Stmt* currentObj = *it;
 
+                if(currentObj->op == "start"){
+                    StartObj* currentStartObj = static_cast<StartObj*>(currentObj);
+
+                    if(currentStartObj->numVars == -1){ //if value not assigned
+                        currentStartObj->numVars = globalVarCount;
+                    }
+                }
                 if(currentObj->op == "jump"){
                     JumpObj* currentJumpObj = static_cast<JumpObj*>(currentObj);
                 
@@ -117,7 +126,24 @@ Stmt* checkStatement(std::string statementStr){
                         currentGoSubObj->location = vals->location;
                     }
                 }
+                else if(currentObj->op == "popscal"){
+                    PopScalObj* currentPopScalObj = static_cast<PopScalObj*>(currentObj);
 
+                    if(currentPopScalObj->location == -1){ //if value not assigned
+                        TwoTuple* vals = symbolTable.back()[currentPopScalObj->var];
+                        currentPopScalObj->location = vals->location;
+
+                    }
+                }   
+                else if(currentObj->op == "pushscal"){
+                    PushScalObj* currentPushScalObj = static_cast<PushScalObj*>(currentObj);
+
+                    if(currentPushScalObj->location == -1){ //if value not assigned
+                        TwoTuple* vals = symbolTable.back()[currentPushScalObj->var];
+                        currentPushScalObj->location = vals->location;
+                    }
+                }
+                
             }
 
             
@@ -137,12 +163,14 @@ Stmt* checkStatement(std::string statementStr){
             ReturnObj* object = new ReturnObj("return");
             instructionBuffer.push_back(object);
 
+            //std::cout << symbolTable.back().size() << std::endl;
+
             //when you hit a return, loop from 
             int count = instBufferReturnIndex;
             vector<Stmt*>::iterator it; 
             for(it = instructionBuffer.begin() + instBufferReturnIndex; it != instructionBuffer.end(); it++){
                 Stmt* currentObj = *it;
-                std::cout << count << std::endl;
+                //std::cout << currentObj->op << std::endl;
                 count += 1;
 
                 if(currentObj->op == "jump"){
@@ -169,8 +197,30 @@ Stmt* checkStatement(std::string statementStr){
                         currentJumpObj->location = vals->location;
                     }
                 }
-                
+                else if(currentObj->op == "popscal"){
+                    PopScalObj* currentPopScalObj = static_cast<PopScalObj*>(currentObj);
 
+                    if(currentPopScalObj->location == -1){ //if value not assigned
+                        TwoTuple* vals = symbolTable.back()[currentPopScalObj->var];
+                        currentPopScalObj->location = vals->location;
+                    }
+                }   
+                else if(currentObj->op == "pushscal"){
+                    PushScalObj* currentPushScalObj = static_cast<PushScalObj*>(currentObj);
+
+                    if(currentPushScalObj->location == -1){ //if value not assigned
+                        TwoTuple* vals = symbolTable.back()[currentPushScalObj->var];
+                        currentPushScalObj->location = vals->location;
+                    }
+                }
+                
+                else if(currentObj->op == "gosublabel"){ //SET SIZE OF GOSUBLABEL STACK FRAME
+                    GoSubLabelObj* currentGoSubLabelObj = static_cast<GoSubLabelObj*>(currentObj);
+                
+                    if(currentGoSubLabelObj->size == -1){ //if value not assigned
+                        currentGoSubLabelObj->size = varCount;
+                    }
+                }
                 /*else if(currentObj->op == "gosub"){
                     GoSubObj* currentGoSubObj = static_cast<GoSubObj*>(currentObj);
                 
@@ -228,8 +278,55 @@ Stmt* checkStatement(std::string statementStr){
     }
     
     else if (std::find(std::begin(varStmtOps), std::end(varStmtOps), op) != std::end(varStmtOps)){
-    
+        regex varStmtRegex("(\\w+)\\s+(\\w)");
+        smatch varStmtMatch;
+        std::string var = "error";
+
+        if(regex_search(statementStr, varStmtMatch, varStmtRegex)){
+            //op = intStmtMatch.str(1);
+            var = varStmtMatch.str(2);
+        }
+        
+        else{
+            std::cout << "varStmtRegex doesn't match" << std::endl; //no match!
+            //exit (EXIT_FAILURE);
+        } 
+
+        if(op == "declscal"){
+            TwoTuple* data;
+            
+            if(symbolTable.size() == 1){ //if in top level use globalVarCount and add one to it
+                data = new TwoTuple(globalVarCount, 1);
+                globalVarCount += 1;
+            }
+            else{ //else use varCount (which can be reset per subroutine)
+                data = new TwoTuple(varCount + globalVarCount, 1);
+                varCount += 1;
+            }
+
+            std::pair<std::string, TwoTuple*> pair;  //add to symbol table
+            pair.first = var;
+            pair.second = data;
+            symbolTable.back().insert(pair);
+
+            //CHECK TO MAKE SURE THAT VAR isn't already used
+
+            DeclScalObj* object = new DeclScalObj("declscalobj");
+            //dont add to instruction buffer?
+            return object;
+        }
+        else if(op == "popscal"){
+            PopScalObj* object = new PopScalObj(op, var);
+            instructionBuffer.push_back(object);
+            return object;
+        }
+        else if(op == "pushscal"){
+            PushScalObj* object = new PushScalObj(op, var);
+            instructionBuffer.push_back(object);
+            return object;
+        }
     }
+
     else if (std::find(std::begin(varLenStmtOps), std::end(varLenStmtOps), op) != std::end(varLenStmtOps)){
     
     }
@@ -256,6 +353,8 @@ Stmt* checkStatement(std::string statementStr){
             pair.second = data;
             //map.insert(pair); // label = L1     <str - l1, location - 1, size - 0>
             symbolTable.back().insert(pair);
+
+            //CHECK TO MAKE SURE THERE ISN'T ALREADY THAT VAR
 
             //std::cout << symbolTable.size() << std::endl;
             LabelObj* object = new LabelObj("label");
@@ -302,6 +401,7 @@ Stmt* checkStatement(std::string statementStr){
             //create subroutine symbol table
             std::map<std::string, TwoTuple*> subroutine;
             symbolTable.push_back(subroutine);
+            varCount = 0;//reset varCount
 
             return object;
         }
@@ -320,7 +420,6 @@ Stmt* checkStatement(std::string statementStr){
             //no match!
             std::cout << "intStmtRegex doesn't match" << std::endl;
             //exit (EXIT_FAILURE);
-            //return error
         }
 
         if(op == "pushi"){
@@ -363,20 +462,6 @@ Stmt* checkStatement(std::string statementStr){
     //return new StartObj("fail");
 
     return nullptr;
-}
-
-int getNumLines(std::string fn){
-    fstream f;
-    std::string line;
-    f.open(fn);
-
-    int numLines = 0;
-    while(!f.eof()){
-        getline(f, line);
-        numLines++;
-    }
-
-    return numLines;
 }
 
 //vector<std::map<std::string, TwoTuple*>> symbolTable;

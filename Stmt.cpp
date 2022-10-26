@@ -53,7 +53,24 @@ std::string PrintTOSObj::serialize(){
 
 
 //varStmtOps
+std::string DeclScalObj::serialize(){
+    return "";
+}
 
+std::string PopScalObj::serialize(){
+    return "PopScalar " + var + ", (" + to_string(location) + ")";
+    //return "";
+}
+
+std::string PushScalObj::serialize(){
+    return "PushScalar " + var + ", (" + to_string(location) + ")";
+    //return "";
+}
+
+std::string PushArrObj::serialize(){
+    return "PushArray " + var + ", (" + to_string(location) + ")";
+    //return "";
+}
 
 //varLenStmtOps
 
