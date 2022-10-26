@@ -42,6 +42,13 @@ const std::vector<std::string> labelStmtOps{"label",
 const std::vector<std::string> intStmtOps{"pushi"};
 const std::vector<std::string> strStmtOps{"prints"};
 
+//instruction buffer, symbol table, and string buffer declaration
+vector<Stmt*> instructionBuffer;
+vector<std::string> stringBuffer;
+
+vector<map<std::string, TwoTuple*>> symbolTable;
+int instructionBufferReturnIndex = 0;
+
 Stmt* checkStatement(std::string statementStr){
     //get statement
     
@@ -57,49 +64,122 @@ Stmt* checkStatement(std::string statementStr){
         //no match!
         std::cout << "Initial regex doesn't match" << std::endl;
         //exit (EXIT_FAILURE);
-        //return error
     }
 
     if (std::find(std::begin(stmtOps), std::end(stmtOps), op) != std::end(stmtOps)){
         //regex to check if okay
         if(op == "start"){
-            return new StartObj("start");
+            //add top level symbol table
+            std::map<std::string, TwoTuple*> base;
+            symbolTable.push_back(base);
+            //symbolTable.back()
+            StartObj* object = new StartObj("start");
+            instructionBuffer.push_back(object);
+            return object;
         }
         else if(op == "end"){
+            //go back through instruction buffer
+            //for each unfilled jump, etc 
+            //look up jump's label in symbol table map
+            vector<Stmt*>::iterator it; 
+            for(it = instructionBuffer.begin(); it != instructionBuffer.end(); it++){
+                Stmt* currentObj = *it;
+                std::cout << currentObj->op << std::endl;
+
+                if(currentObj->op == "jump"){
+                    JumpObj* currentJumpObj = static_cast<JumpObj*>(currentObj);
+                
+                    if(currentJumpObj->location == -1){ //if value not assigned
+                        TwoTuple* vals = symbolTable.back()[currentJumpObj->label];
+                        currentJumpObj->location = vals->location;
+                        std::cout << currentJumpObj->location << std::endl;
+
+                    }
+                }
+                else if(currentObj->op == "jumpzero"){
+                    JumpZeroObj* currentJumpObj = static_cast<JumpZeroObj*>(currentObj);
+                
+                    if(currentJumpObj->location == -1){ //if value not assigned
+                        TwoTuple* vals = symbolTable.back()[currentJumpObj->label];
+                        currentJumpObj->location = vals->location;
+                        std::cout << currentJumpObj->location << std::endl;
+
+                    }
+                }
+                else if(currentObj->op == "jumpnzero"){
+                    JumpNZeroObj* currentJumpObj = static_cast<JumpNZeroObj*>(currentObj);
+                
+                    if(currentJumpObj->location == -1){ //if value not assigned
+                        TwoTuple* vals = symbolTable.back()[currentJumpObj->label];
+                        currentJumpObj->location = vals->location;
+                        std::cout << currentJumpObj->location << std::endl;
+
+                    }
+                }
+
+            }
+
+            
             end_stmt += 1;
             return new EndObj("end");
             //cout << "Need end type?" << endl;
             //return new StartObj("end (shouldn't be here)");
         }
         else if(op == "exit"){
-            return new ExitObj("exit");
+            //go back through symbol table
+        
+            //assign all the values and stuff
+
+            ExitObj* object = new ExitObj("exit");
+            instructionBuffer.push_back(object);
+            return object;
         }
         else if(op == "return"){
+            
+            //when you hit a return, 
+
+            //then pop back symbol table             
 
         }
         else if(op == "pop"){
-            return new PopObj("pop");
+            PopObj* object = new PopObj("pop");
+            instructionBuffer.push_back(object);
+            return object;
         }
         else if(op == "dup"){
-            return new DupObj("dup");
+            DupObj* object = new DupObj("dup");
+            instructionBuffer.push_back(object);
+            return object;        
         }
         else if(op == "swap"){
-            return new SwapObj("swap");
+            SwapObj* object = new SwapObj("swap");
+            instructionBuffer.push_back(object);
+            return object;
         }
         else if(op == "add"){
-            return new AddObj("add");
+            AddObj* object = new AddObj("add");
+            instructionBuffer.push_back(object);
+            return object;
         }
         else if(op == "negate"){
-            return new NegateObj("negate");
+            NegateObj* object = new NegateObj("negate");
+            instructionBuffer.push_back(object);
+            return object;
         }
         else if(op == "mul"){
-            return new MulObj("mul");
+            MulObj* object = new MulObj("mul");
+            instructionBuffer.push_back(object);
+            return object;
         }
         else if(op == "div"){
-            return new DivObj("div");
+            DivObj* object = new DivObj("div");
+            instructionBuffer.push_back(object);
+            return object;
         }
         else if(op == "printtos"){
-            return new PrintTOSObj("printtos");
+            PrintTOSObj* object = new PrintTOSObj("PrintTOS");
+            instructionBuffer.push_back(object);
+            return object; 
         }
     }
     
@@ -110,21 +190,57 @@ Stmt* checkStatement(std::string statementStr){
     
     }
     else if (std::find(std::begin(labelStmtOps), std::end(labelStmtOps), op) != std::end(labelStmtOps)){
-    
+        regex labelStmtRegex("(\\w+)\\s+(\\w+)");
+        smatch labelStmtMatch;
+        std::string label = "error";
+
+        if(regex_search(statementStr, labelStmtMatch, labelStmtRegex)){
+            //op = intStmtMatch.str(1);
+            label = labelStmtMatch.str(2);
+        }
+        else{
+            std::cout << "labelStmtRegex doesn't match" << std::endl; //no match!
+            //exit (EXIT_FAILURE);
+        } 
+
+        if(op == "label"){
+            //std::map<std::string, TwoTuple*> map;
+            TwoTuple* data = new TwoTuple(instructionBuffer.size(), 0);
+            std::pair<std::string, TwoTuple*> pair;
+            //add to symbol table
+            pair.first = label;
+            pair.second = data;
+            //map.insert(pair); // label = L1     <str - l1, location - 1, size - 0>
+            symbolTable.back().insert(pair);
+
+            //std::cout << symbolTable.size() << std::endl;
+            LabelObj* object = new LabelObj("label");
+            //dont add to instruction buffer?
+            return object;
+        }
+        else if(op == "jump"){
+            JumpObj* object = new JumpObj("jump", label);
+            instructionBuffer.push_back(object);
+            return object;
+        }
+        else if(op == "jumpzero"){
+            JumpZeroObj* object = new JumpZeroObj("jumpzero", label);
+            instructionBuffer.push_back(object);
+            return object;
+        }
+        else if(op == "jumpnzero"){
+            JumpNZeroObj* object = new JumpNZeroObj("jumpnzero", label);
+            instructionBuffer.push_back(object);
+            return object;
+        }
     }
     else if (std::find(std::begin(intStmtOps), std::end(intStmtOps), op) != std::end(intStmtOps)){
-        //regex to catch int and check
-        //std::string pushi = op;
-        //regex intStmtRegex("(?<=op\\s)[0-9]{0,16}");
-        regex intStmtRegex("(\\w+)\\s+([0-9])");
+
+        regex intStmtRegex("(\\w+)\\s+([0-9]+)");  //regex to catch int and check
         smatch intStmtMatch;
         int arg = 666;
 
         if(regex_search(statementStr, intStmtMatch, intStmtRegex)){
-            //cout << "Whole match : " << match.str(0) << endl;
-            //std::cout << intStmtMatch.str(1) << std::endl;
-            //std::cout << std::stoi(intStmtMatch.str(2)) << std::endl;
-
             //op = intStmtMatch.str(1);
             arg = std::stoi(intStmtMatch.str(2));
         }
@@ -136,11 +252,35 @@ Stmt* checkStatement(std::string statementStr){
         }
 
         if(op == "pushi"){
-            return new PushIObj("pushi", arg);
+            PushIObj* object = new PushIObj("pushi", arg);
+            instructionBuffer.push_back(object);
+            return object;
         }
     }
     else if (std::find(std::begin(strStmtOps), std::end(strStmtOps), op) != std::end(strStmtOps)){
+        
+        regex strStmtRegex("(\\w+)\\s+(\\w+)");
+        smatch strStmtMatch;
+        std::string str = "error";
 
+        if(regex_search(statementStr, strStmtMatch, strStmtRegex)){
+            //op = intStmtMatch.str(1);
+            str = strStmtMatch.str(2);
+        }
+        else{
+            std::cout << "strStmtRegex doesn't match" << std::endl; //no match!
+            //exit (EXIT_FAILURE);
+        }
+
+        if(op == "prints"){
+            //add str to string buffer
+            stringBuffer.push_back(str);
+
+            PrintsObj* object = new PrintsObj("prints", str, stringBuffer.size()-1); //str index at strbuffer size - 1
+            instructionBuffer.push_back(object);
+            return object;     
+        }
+        
     }
     else{
         //operation not found! failure
@@ -167,9 +307,6 @@ int getNumLines(std::string fn){
     return numLines;
 }
 
-//instruction buffer, symbol table, and string buffer declaration
-vector<Stmt*> instructionBuffer;
-vector<std::string> stringBuffer;
 //vector<std::map<std::string, TwoTuple*>> symbolTable;
 
 int main(int argc, char **argv) {
@@ -186,11 +323,16 @@ int main(int argc, char **argv) {
             //add all parsed instructions to pre-instruction list first, checking input, etc
             Stmt* currentStatement = checkStatement(line);
             if((currentStatement->serialize() == "End") && (end_stmt == 1)){
+                
+                //go through instruction buffer 
+                //if label claimed go sub -> extra dynamic symbols 
+                //JumpObj("jump", "L1", NULL) 
+                //for element instruction buffer
+                //      if any obj -> val == NULL
+                            //for each in symbol table if (L1)
                 break;
             }
-            instructionBuffer.push_back(currentStatement);
-            //instructionBufferCount += 1;
-            //std::cout << currentStatement->returnString() << std::endl;
+
         }
         
         //write to file
@@ -209,13 +351,6 @@ int main(int argc, char **argv) {
         //std::cout << "end" << std::endl;
 
         
-        //for each item in pre instruction list
-        //then go through instruction list and add stuff to symbol table, statement buffer, etc
-        //do stuff like assign addresses,
-        //check if var has been defined twice
-        //add set total num of vars to start
-        //etc
-
         //loop through each and print it
         f.close();
     }

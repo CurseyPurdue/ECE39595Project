@@ -4,7 +4,6 @@
 class TwoTuple{
     public:
         TwoTuple(int _location, int _size);
-    private:
         int location;
         int size;
 };

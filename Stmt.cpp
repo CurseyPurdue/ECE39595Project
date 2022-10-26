@@ -2,7 +2,7 @@
 #include "Stmt.h"
 using namespace std;
 
-
+//stmtOps
 std::string StartObj::serialize(){
     return "Start " + to_string(numVars);
 }
@@ -47,6 +47,36 @@ std::string PrintTOSObj::serialize(){
     return "PrintTOS";
 }
 
+
+//varStmtOps
+
+
+//varLenStmtOps
+
+
+//labelStmtOps
+std::string LabelObj::serialize(){
+    return "";
+}
+
+std::string JumpObj::serialize(){
+    return "Jump, " + to_string(location);
+}
+
+std::string JumpZeroObj::serialize(){
+    return "JumpZero, " + label + ", (" + to_string(location) + ")";
+}
+
+std::string JumpNZeroObj::serialize(){
+    return "JumpNZero, " + label + ", (" + to_string(location) + ")";
+}
+
+//intStmtOps
 std::string PushIObj::serialize(){
     return "PushI  (" + to_string(arg) + ")";
+}
+
+//strStmtOps
+std::string PrintsObj::serialize(){
+    return "Prints " + str;
 }

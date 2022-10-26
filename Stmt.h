@@ -40,7 +40,7 @@ class Stmt {
         virtual std::string serialize(){return "STMT STRING";};
 };
 
-
+//stmtOps
 class StartObj : public Stmt{
     public:
         int numVars = 0; //num variables (for start)
@@ -109,11 +109,58 @@ class PrintTOSObj : public Stmt{
         std::string serialize();
 };
 
+//varStmtOps
+
+//varLenStmtOps
+
+//labelStmtOps
+class LabelObj : public Stmt{
+    public:
+        LabelObj(std::string _op) : Stmt(_op) {opcode = 666;};
+        std::string serialize();
+};
+
+class JumpObj : public Stmt{
+    public:
+        std::string label;
+        int location;
+        JumpObj(std::string _op, std::string _label) : Stmt(_op) {opcode = OP_JUMP; label = _label; location = -1;};
+        std::string serialize();
+};
+
+class JumpZeroObj : public Stmt{
+    public:
+        std::string label;
+        int location;
+        JumpZeroObj(std::string _op, std::string _label) : Stmt(_op) {opcode = OP_JUMPZERO; label = _label; location = -1;};
+        std::string serialize();
+};
+
+class JumpNZeroObj : public Stmt{
+    public:
+        std::string label;
+        int location;
+        JumpNZeroObj(std::string _op, std::string _label) : Stmt(_op) {opcode = OP_JUMPNZERO; label = _label; location = -1;};
+        std::string serialize();
+};
+
+//intStmtOps
 class PushIObj: public Stmt{
     public:
         int arg;
         PushIObj(std::string _op, int _arg) : Stmt(_op) {opcode = OP_PUSHI; arg = _arg;};
         std::string serialize();
 };
+
+
+//strStmtOps
+class PrintsObj: public Stmt{
+    public:
+        int strIndex;
+        std::string str;
+        PrintsObj(std::string _op, std::string _str, int _strIndex) : Stmt(_op) {opcode = OP_PUSHI; str = _str; strIndex = _strIndex;};
+        std::string serialize();
+};
+
 #endif /* STMT_H_ */
 
