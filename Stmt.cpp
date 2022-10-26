@@ -57,8 +57,17 @@ std::string DeclScalObj::serialize(){
     return "";
 }
 
+std::string DeclArrObj::serialize(){
+    return "";
+}
+
 std::string PopScalObj::serialize(){
     return "PopScalar " + var + ", (" + to_string(location) + ")";
+    //return "";
+}
+
+std::string PopArrObj::serialize(){
+    return "PopArr " + var + ", (" + to_string(location) + ")";
     //return "";
 }
 

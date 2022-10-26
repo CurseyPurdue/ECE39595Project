@@ -122,11 +122,22 @@ class DeclScalObj : public Stmt{
         std::string serialize();
 };
 
+
+
 class PopScalObj: public Stmt{
     public:
         int location = -1; //num variables (for start)
         std::string var;
         PopScalObj(std::string _op, std::string _var) : Stmt(_op) {opcode = OP_POPSCALAR; var = _var; location = -1;};
+        std::string serialize();
+
+};
+
+class PopArrObj: public Stmt{
+    public:
+        int location = -1; //num variables (for start)
+        std::string var;
+        PopArrObj(std::string _op, std::string _var) : Stmt(_op) {opcode = OP_POPARRAY; var = _var; location = -1;};
         std::string serialize();
 
 };
@@ -150,6 +161,12 @@ class PushArrObj: public Stmt{
 };
 
 //varLenStmtOps
+class DeclArrObj : public Stmt{
+    public:
+        //int length;
+        DeclArrObj(std::string _op) : Stmt(_op) {opcode = -1;};
+        std::string serialize();
+};
 
 //labelStmtOps
 class LabelObj : public Stmt{

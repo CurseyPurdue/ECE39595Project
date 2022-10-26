@@ -54,7 +54,7 @@ int varCount = 0;
 Stmt* checkStatement(std::string statementStr){
     //get statement
     
-    regex opRegex("(\\w+)");
+    regex opRegex("^(\\w+)");
     smatch match;
     std::string op = "";
 
@@ -135,6 +135,17 @@ Stmt* checkStatement(std::string statementStr){
 
                     }
                 }   
+
+                
+                else if(currentObj->op == "poparr"){
+                    PopArrObj* currentPopArrObj = static_cast<PopArrObj*>(currentObj);
+
+                    if(currentPopArrObj->location == -1){ //if value not assigned
+                        TwoTuple* vals = symbolTable.back()[currentPopArrObj->var];
+                        currentPopArrObj->location = vals->location;
+                    }
+                }
+
                 else if(currentObj->op == "pushscal"){
                     PushScalObj* currentPushScalObj = static_cast<PushScalObj*>(currentObj);
 
@@ -143,7 +154,15 @@ Stmt* checkStatement(std::string statementStr){
                         currentPushScalObj->location = vals->location;
                     }
                 }
-                
+
+                else if(currentObj->op == "pusharr"){
+                    PushArrObj* currentPushArrObj = static_cast<PushArrObj*>(currentObj);
+
+                    if(currentPushArrObj->location == -1){ //if value not assigned
+                        TwoTuple* vals = symbolTable.back()[currentPushArrObj->var];
+                        currentPushArrObj->location = vals->location;
+                    }
+                }
             }
 
             
@@ -162,8 +181,6 @@ Stmt* checkStatement(std::string statementStr){
             //push return onto instruction buffer
             ReturnObj* object = new ReturnObj("return");
             instructionBuffer.push_back(object);
-
-            //std::cout << symbolTable.back().size() << std::endl;
 
             //when you hit a return, loop from 
             int count = instBufferReturnIndex;
@@ -205,6 +222,16 @@ Stmt* checkStatement(std::string statementStr){
                         currentPopScalObj->location = vals->location;
                     }
                 }   
+                
+                else if(currentObj->op == "poparr"){
+                    PopArrObj* currentPopArrObj = static_cast<PopArrObj*>(currentObj);
+
+                    if(currentPopArrObj->location == -1){ //if value not assigned
+                        TwoTuple* vals = symbolTable.back()[currentPopArrObj->var];
+                        currentPopArrObj->location = vals->location;
+                    }
+                }   
+
                 else if(currentObj->op == "pushscal"){
                     PushScalObj* currentPushScalObj = static_cast<PushScalObj*>(currentObj);
 
@@ -214,6 +241,15 @@ Stmt* checkStatement(std::string statementStr){
                     }
                 }
                 
+                else if(currentObj->op == "pusharr"){
+                    PushArrObj* currentPushArrObj = static_cast<PushArrObj*>(currentObj);
+
+                    if(currentPushArrObj->location == -1){ //if value not assigned
+                        TwoTuple* vals = symbolTable.back()[currentPushArrObj->var];
+                        currentPushArrObj->location = vals->location;
+                    }
+                }  
+                 
                 else if(currentObj->op == "gosublabel"){ //SET SIZE OF GOSUBLABEL STACK FRAME
                     GoSubLabelObj* currentGoSubLabelObj = static_cast<GoSubLabelObj*>(currentObj);
                 
@@ -221,14 +257,14 @@ Stmt* checkStatement(std::string statementStr){
                         currentGoSubLabelObj->size = varCount;
                     }
                 }
-                /*else if(currentObj->op == "gosub"){
+                else if(currentObj->op == "gosub"){
                     GoSubObj* currentGoSubObj = static_cast<GoSubObj*>(currentObj);
                 
                     if(currentGoSubObj->location == -1){ //if value not assigned
-                        TwoTuple* vals = symbolTable.back()[currentGoSubObj->label];
+                        TwoTuple* vals = symbolTable.front()[currentGoSubObj->label];
                         currentGoSubObj->location = vals->location;
                     }
-                }*/
+                }
             }
             instBufferReturnIndex = 0; //set instBufferReturnIndex = 0;
             symbolTable.pop_back(); //then pop off symbol table  
@@ -278,7 +314,7 @@ Stmt* checkStatement(std::string statementStr){
     }
     
     else if (std::find(std::begin(varStmtOps), std::end(varStmtOps), op) != std::end(varStmtOps)){
-        regex varStmtRegex("(\\w+)\\s+(\\w)");
+        regex varStmtRegex("^(\\w+)\\s+(\\w)");
         smatch varStmtMatch;
         std::string var = "error";
 
@@ -320,18 +356,67 @@ Stmt* checkStatement(std::string statementStr){
             instructionBuffer.push_back(object);
             return object;
         }
+        else if(op == "poparr"){
+            PopArrObj* object = new PopArrObj(op, var);
+            instructionBuffer.push_back(object);
+            return object;
+        }
         else if(op == "pushscal"){
             PushScalObj* object = new PushScalObj(op, var);
+            instructionBuffer.push_back(object);
+            return object;
+        }
+        else if(op == "pusharr"){
+            PushArrObj* object = new PushArrObj(op, var);
             instructionBuffer.push_back(object);
             return object;
         }
     }
 
     else if (std::find(std::begin(varLenStmtOps), std::end(varLenStmtOps), op) != std::end(varLenStmtOps)){
-    
+        regex varLenStmtRegex("^(\\w+)\\s+(\\w+)\\s+([0-9]+)");
+        smatch varLenStmtMatch;
+        std::string var = "error";
+        int length = -1;
+
+        if(regex_search(statementStr, varLenStmtMatch, varLenStmtRegex)){
+            //op = intStmtMatch.str(1);
+            var = varLenStmtMatch.str(2);
+            length = std::stoi(varLenStmtMatch.str(3));
+        }
+        else{
+            std::cout << "varLenStmtRegex doesn't match" << std::endl; //no match!
+            //exit (EXIT_FAILURE);
+        } 
+
+        if(op == "declarr"){
+            TwoTuple* data;
+            
+            if(symbolTable.size() == 1){ //if in top level use globalVarCount and add one to it
+                data = new TwoTuple(globalVarCount, length);
+                globalVarCount += length;
+            }
+            else{ //else use varCount (which can be reset per subroutine)
+                data = new TwoTuple(varCount + globalVarCount, length);
+                varCount += length;
+            }
+
+            std::pair<std::string, TwoTuple*> pair;  //add to symbol table
+            pair.first = var;
+            pair.second = data;
+            symbolTable.back().insert(pair);
+
+            //CHECK TO MAKE SURE THAT VAR isn't already used
+
+            DeclArrObj* object = new DeclArrObj("declarrobj");
+            //dont add to instruction buffer?
+            return object;
+        }
+
+
     }
     else if (std::find(std::begin(labelStmtOps), std::end(labelStmtOps), op) != std::end(labelStmtOps)){
-        regex labelStmtRegex("(\\w+)\\s+(\\w+)");
+        regex labelStmtRegex("^(\\w+)\\s+(\\w+)");
         smatch labelStmtMatch;
         std::string label = "error";
 
@@ -408,7 +493,7 @@ Stmt* checkStatement(std::string statementStr){
     }
     else if (std::find(std::begin(intStmtOps), std::end(intStmtOps), op) != std::end(intStmtOps)){
 
-        regex intStmtRegex("(\\w+)\\s+([0-9]+)");  //regex to catch int and check
+        regex intStmtRegex("^(\\w+)\\s+([0-9]+)");  //regex to catch int and check
         smatch intStmtMatch;
         int arg = 666;
 
@@ -430,7 +515,7 @@ Stmt* checkStatement(std::string statementStr){
     }
     else if (std::find(std::begin(strStmtOps), std::end(strStmtOps), op) != std::end(strStmtOps)){
         
-        regex strStmtRegex("(\\w+)\\s+(\\w+)");
+        regex strStmtRegex("^(\\w+)\\s+(\\w)");
         smatch strStmtMatch;
         std::string str = "error";
 
@@ -475,21 +560,29 @@ int main(int argc, char **argv) {
 
     if(f.is_open()){
         int instructionBufferCount = 0;
+        int endHit = 0;
 
         while(getline(f, line)){
             //add all parsed instructions to pre-instruction list first, checking input, etc
-            Stmt* currentStatement = checkStatement(line);
-            if((currentStatement->serialize() == "End") && (end_stmt == 1)){
-                
-                //go through instruction buffer 
-                //if label claimed go sub -> extra dynamic symbols 
-                //JumpObj("jump", "L1", NULL) 
-                //for element instruction buffer
-                //      if any obj -> val == NULL
-                            //for each in symbol table if (L1)
-                break;
+            if(endHit){ //if you are still getting line after endHit
+                std::cout << "error: statement after end" << std::endl;//error
+
+                exit(0);
             }
 
+            Stmt* currentStatement = checkStatement(line);
+            //std::cout << currentStatement->op << std::endl;
+            /*if(currentStatement->serialize() == "Exit"){
+                
+            }*/
+
+            if((currentStatement->serialize() == "End") && (end_stmt == 1)){
+                endHit = 1;
+            }
+        }
+        if(endHit == 0){ //error: no end in file
+            std::cout << "error: no end statement" << std::endl;
+            exit(0);
         }
         
         //write to file
@@ -499,18 +592,13 @@ int main(int argc, char **argv) {
         for(auto & element : instructionBuffer) {
             //cout << element->serialize() << endl;
             outputFile << element->serialize() << endl;
-            //outputFile << "Hello\n";
             //std::cout << element->serialize() << std::endl;
         }
-        //std::cout << instructionBuffer[0]->returnString() << std::endl;
 
-
-        //std::cout << "end" << std::endl;
-
-        
         //loop through each and print it
         f.close();
     }
     else cout << "Error opening input file";
     return 0;
 }
+
