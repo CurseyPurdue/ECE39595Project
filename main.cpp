@@ -339,13 +339,16 @@ Stmt* checkStatement(std::string statementStr){
                 data = new TwoTuple(varCount + globalVarCount, 1);
                 varCount += 1;
             }
-
+            
+            //CHECK TO MAKE SURE THAT VAR isn't already used
+            if(symbolTable.back().find(var) != symbolTable.back().end()){
+                std::cout << "error: duplicate variable assigned" << std::endl;
+                exit(0);
+            }
             std::pair<std::string, TwoTuple*> pair;  //add to symbol table
             pair.first = var;
             pair.second = data;
             symbolTable.back().insert(pair);
-
-            //CHECK TO MAKE SURE THAT VAR isn't already used
 
             DeclScalObj* object = new DeclScalObj("declscalobj");
             //dont add to instruction buffer?
@@ -401,12 +404,16 @@ Stmt* checkStatement(std::string statementStr){
                 varCount += length;
             }
 
+            //CHECK TO MAKE SURE THAT ARR isn't already used
+            if(symbolTable.back().find(var) != symbolTable.back().end()){
+                std::cout << "error: duplicate array assigned" << std::endl;
+                exit(0);
+            }
+
             std::pair<std::string, TwoTuple*> pair;  //add to symbol table
             pair.first = var;
             pair.second = data;
             symbolTable.back().insert(pair);
-
-            //CHECK TO MAKE SURE THAT VAR isn't already used
 
             DeclArrObj* object = new DeclArrObj("declarrobj");
             //dont add to instruction buffer?
@@ -433,15 +440,18 @@ Stmt* checkStatement(std::string statementStr){
             //std::map<std::string, TwoTuple*> map;
             TwoTuple* data = new TwoTuple(instructionBuffer.size(), 0);
             std::pair<std::string, TwoTuple*> pair;
+
+            //CHECK TO MAKE SURE THAT ARR isn't already used
+            if(symbolTable.back().find(label) != symbolTable.back().end()){
+                std::cout << "error: duplicate label assigned" << std::endl;
+                exit(0);
+            }
+
             //add to symbol table
             pair.first = label;
             pair.second = data;
-            //map.insert(pair); // label = L1     <str - l1, location - 1, size - 0>
             symbolTable.back().insert(pair);
 
-            //CHECK TO MAKE SURE THERE ISN'T ALREADY THAT VAR
-
-            //std::cout << symbolTable.size() << std::endl;
             LabelObj* object = new LabelObj("label");
             //dont add to instruction buffer?
             return object;
@@ -515,7 +525,7 @@ Stmt* checkStatement(std::string statementStr){
     }
     else if (std::find(std::begin(strStmtOps), std::end(strStmtOps), op) != std::end(strStmtOps)){
         
-        regex strStmtRegex("^(\\w+)\\s+(\\w)");
+        regex strStmtRegex("^(\\w+)\\s+([^\"\\s]+)");
         smatch strStmtMatch;
         std::string str = "error";
 
@@ -587,12 +597,12 @@ int main(int argc, char **argv) {
         
         //write to file
         fstream outputFile;
-        outputFile.open("output0.txt", fstream::out);
+        outputFile.open("output.out", fstream::out);
         
         for(auto & element : instructionBuffer) {
             //cout << element->serialize() << endl;
             outputFile << element->serialize() << endl;
-            //std::cout << element->serialize() << std::endl;
+            std::cout << element->serialize() << std::endl;
         }
 
         //loop through each and print it
