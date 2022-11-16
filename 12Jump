@@ -1,0 +1,8 @@
+start dasf asdf as
+jump L1
+prints this
+label L1
+prints this_should_print
+prints string  
+exit
+end
