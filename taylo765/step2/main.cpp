@@ -8,6 +8,8 @@ using namespace std;
 vector<VM_Stmt*> instructionMemory;
 vector<int> runtimeStack;
 vector<int*> dataMemory;
+vector<std::string> stringBuffer;
+int stringBufferIdx = 0;
 int pc = 0;
 
 int getArgument(std::string line){
@@ -122,8 +124,26 @@ void checkStatement(std::string statementStr){
         PushIObj* object = new PushIObj(op, argument);
         instructionMemory.push_back(object);
     }
-    else if(op == "PrintS"){
+    else if(op == "Prints"){
         //parse string and add it to the string buffer
+        regex strStmtRegex("^(\\w+)\\s+([^\"\\s]+)");
+        smatch strStmtMatch;
+        std::string str = "error";
+        
+        if(regex_search(statementStr, strStmtMatch, strStmtRegex)){
+            //op = intStmtMatch.str(1);
+            str = strStmtMatch.str(2);
+            stringBuffer.push_back(str);
+        }
+        else{
+            std::cout << "strStmtRegex doesn't match" << std::endl; //no match!
+            //exit (EXIT_FAILURE);
+        }
+        //std::cout << statementStr << std::endl << str << std::endl;
+        PrintsObj* object = new PrintsObj(op, str, stringBufferIdx);
+        stringBufferIdx += 1;
+        //std::cout << stringBuffer[0] << std::endl;
+        instructionMemory.push_back(object);
     }
 }
 
@@ -154,6 +174,10 @@ void execute(VM_Stmt* instr){
         runtimeStack.pop_back();
         int result = arg1 + arg2;
         runtimeStack.push_back(result);
+    }
+    else if(op == "Prints"){
+        PrintsObj* currentPrintsObj = static_cast<PrintsObj*>(instr);
+        std::cout << stringBuffer[(*currentPrintsObj).strIndex] << std::endl;
     }
 }
 
