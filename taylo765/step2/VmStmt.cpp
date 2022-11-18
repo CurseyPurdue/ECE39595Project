@@ -94,7 +94,7 @@ std::string GoSubObj::serialize(){
 }
 
 std::string GoSubLabelObj::serialize(){
-    return "GoSubLabel " + label;
+    return "GoSubLabel " + to_string(size); //label;
 }
 
 std::string JumpObj::serialize(){
@@ -102,11 +102,11 @@ std::string JumpObj::serialize(){
 }
 
 std::string JumpZeroObj::serialize(){
-    return "JumpZero, " + label + ", (" + to_string(location) + ")";
+    return "JumpZero, " + to_string(location);
 }
 
 std::string JumpNZeroObj::serialize(){
-    return "JumpNZero, " + label + ", (" + to_string(location) + ")";
+    return "JumpNZero, " + to_string(location);
 }
 
 //intStmtOps
@@ -116,5 +116,5 @@ std::string PushIObj::serialize(){
 
 //strStmtOps
 std::string PrintsObj::serialize(){
-    return "Prints " + str;
+    return "Prints " + to_string(strIndex);
 }

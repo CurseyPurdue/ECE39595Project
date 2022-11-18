@@ -185,15 +185,15 @@ class GoSubObj : public VM_Stmt{
 
 class GoSubLabelObj : public VM_Stmt{
     public:
-        std::string label;
+        //std::string label;
         int size;
-        GoSubLabelObj(std::string _op, std::string _label) : VM_Stmt(_op) {opcode = OP_ENTER_SUBROUTINE; label = _label; size = -1;};
+        GoSubLabelObj(std::string _op, int _size) : VM_Stmt(_op) {opcode = OP_ENTER_SUBROUTINE;  size = _size;};
         std::string serialize();
 };
 
 class JumpObj : public VM_Stmt{
     public:
-        std::string label;
+        //std::string label;
         int location;
         //JumpObj(std::string _op, std::string _label) : VM_Stmt(_op) {opcode = OP_JUMP; label = _label; location = -1;};
         JumpObj(std::string _op, int _location) : VM_Stmt(_op) {opcode = OP_JUMP; location = _location;};
@@ -202,17 +202,17 @@ class JumpObj : public VM_Stmt{
 
 class JumpZeroObj : public VM_Stmt{
     public:
-        std::string label;
+        //std::string label;
         int location;
-        JumpZeroObj(std::string _op, std::string _label) : VM_Stmt(_op) {opcode = OP_JUMPZERO; label = _label; location = -1;};
+        JumpZeroObj(std::string _op, int _location) : VM_Stmt(_op) {opcode = OP_JUMPZERO; location = _location;};
         std::string serialize();
 };
 
 class JumpNZeroObj : public VM_Stmt{
     public:
-        std::string label;
+        //std::string label;
         int location;
-        JumpNZeroObj(std::string _op, std::string _label) : VM_Stmt(_op) {opcode = OP_JUMPNZERO; label = _label; location = -1;};
+        JumpNZeroObj(std::string _op, int _location) : VM_Stmt(_op) {opcode = OP_JUMPNZERO; location = _location;};
         std::string serialize();
 };
 
@@ -231,8 +231,9 @@ class PushIObj: public VM_Stmt{
 class PrintsObj: public VM_Stmt{
     public:
         int strIndex;
-        std::string str;
-        PrintsObj(std::string _op, std::string _str, int _strIndex) : VM_Stmt(_op) {opcode = OP_PUSHI; str = _str; strIndex = _strIndex;};
+        //std::string str;
+        //PrintsObj(std::string _op, std::string _str, int _strIndex) : VM_Stmt(_op) {opcode = OP_PUSHI; str = _str; strIndex = _strIndex;};
+        PrintsObj(std::string _op, int _strIndex) : VM_Stmt(_op) {opcode = OP_PUSHI; strIndex = _strIndex;};
         std::string serialize();
 };
 
